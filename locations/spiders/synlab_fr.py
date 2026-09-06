@@ -15,19 +15,15 @@ class SynlabFRSpider(JSONBlobSpider):
     start_urls = ["https://www.synlab.fr/trouver-un-laboratoire/"]
 
     def extract_json(self, response):
-        return chompjs.parse_js_object(
-            (response.xpath('//script[contains(text(), "const villes = ")]/text()').get() or "").split(
-                "const villes ="
-            )[1]
-        )
+        data = response.xpath('//script[contains(text(), "const villes = ")]/text()').get()
+        if data is not None:
+            return chompjs.parse_js_object(data.split("const villes =")[1])
 
     def pre_process_data(self, location):
         location["name"] = location.pop("nom", None)
         location["addr_full"] = location.pop("adresse", None)
 
     def post_process_item(self, item, response, location):
-        print(item)
-        print(location)
         apply_category(Categories.MEDICAL_LABORATORY, item)
         name = item.pop("name", "").lower()
 
