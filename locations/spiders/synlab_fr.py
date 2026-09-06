@@ -16,7 +16,7 @@ class SynlabFRSpider(JSONBlobSpider):
 
     def extract_json(self, response):
         return chompjs.parse_js_object(
-            response.xpath('//script[contains(text(), "const villes = ")]/text()').get().split("const villes =")[1]
+            (response.xpath('//script[contains(text(), "const villes = ")]/text()').get() or "").split("const villes =")[1]
         )
 
     def pre_process_data(self, location):
