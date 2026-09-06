@@ -19,9 +19,19 @@ class SynlabFRSpider(JSONBlobSpider):
             response.xpath('//script[contains(text(), "const villes = ")]/text()').get().split("const villes =")[1]
         )
 
+    def pre_process_data(self, location):
+        location["name"] = location.pop("nom", None)
+        location["addr_full"] = location.pop("adresse", None)
+
     def post_process_item(self, item, response, location):
+        print(item)
+        print(location)
         apply_category(Categories.MEDICAL_LABORATORY, item)
-        name = location.pop("nom", "").lower()
+        name = item.pop("name", "").lower()
+
+        phone = item.get("phone") or ""
+        if "ou" in phone or "--" in phone:
+            item["phone"] = phone.split("ou")[0].split("--")[0]
 
         if name.startswith("synlab"):
             item["branch"] = (
@@ -57,7 +67,10 @@ class SynlabFRSpider(JSONBlobSpider):
         elif name.startswith("laboratoire bioalliance"):
             item["branch"] = name.removeprefix("laboratoire bioalliance ").removeprefix("de ").removeprefix("d'")
 
-        match = re.search(r"\b\d{5}\b", location.pop("adresse", ""))
+        item["addr_full"] = location.pop("addr_full","").split("(")[0]
+
+        match = re.search(r"\b\d{5}\b", item.get("addr_full") or "")
         item["postcode"] = match.group() if match else None
+
 
         yield item
