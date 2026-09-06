@@ -16,7 +16,9 @@ class SynlabFRSpider(JSONBlobSpider):
 
     def extract_json(self, response):
         return chompjs.parse_js_object(
-            (response.xpath('//script[contains(text(), "const villes = ")]/text()').get() or "").split("const villes =")[1]
+            (response.xpath('//script[contains(text(), "const villes = ")]/text()').get() or "").split(
+                "const villes ="
+            )[1]
         )
 
     def pre_process_data(self, location):
@@ -67,10 +69,9 @@ class SynlabFRSpider(JSONBlobSpider):
         elif name.startswith("laboratoire bioalliance"):
             item["branch"] = name.removeprefix("laboratoire bioalliance ").removeprefix("de ").removeprefix("d'")
 
-        item["addr_full"] = location.pop("addr_full","").split("(")[0]
+        item["addr_full"] = location.pop("addr_full", "").split("(")[0]
 
         match = re.search(r"\b\d{5}\b", item.get("addr_full") or "")
         item["postcode"] = match.group() if match else None
-
 
         yield item
